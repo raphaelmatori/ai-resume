@@ -47,6 +47,11 @@ jobs:
           git commit -m "chore: bump version to $NEW_VER [skip ci]"
           git tag v$NEW_VER
 
+      - name: Build Electron App
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -60,6 +65,5 @@ jobs:
           generate_release_notes: true
           files: |
             dist/*.dmg
-          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
