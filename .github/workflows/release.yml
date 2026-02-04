@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write # Required for creating releases and pushing commits
 
 jobs:
   release:
@@ -48,10 +52,14 @@ jobs:
         with:
           tag_name: v${{ steps.versioning.outputs.NEW_VERSION }}
           name: Release v${{ steps.versioning.outputs.NEW_VERSION }}
+          body: |
+            ## What's Changed
+            - See commit history for details
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
             dist/*.dmg
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
