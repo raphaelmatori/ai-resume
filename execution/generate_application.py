@@ -46,16 +46,24 @@ def generate_resume_content(candidate_md: str, vacancy_md: str) -> ResumeContent
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a Professional Resume Strategist.
+
 Context:
 1. Candidate Profile (Strict Fact Database)
 2. Vacancy Analysis (Target)
 
 Task: Adapt the candidate's profile to the vacancy.
-Constraint: 
+
+CRITICAL CONSTRAINTS:
 - You may ONLY use facts present in the Candidate Profile.
 - **Traceability**: Every bullet point or sentence MUST end with the original `<!-- source_id: ... -->` tag from the Candidate Profile.
-- **Consistency**: Use the exact years of experience found in the Candidate Profile. Do NOT adapt these numbers to match the job description if the profile says otherwise.
+- **STRICT FACTUAL CONSISTENCY**: 
+  * If the profile says "8+ years", you MUST write "8+ years" - NOT "over 8 years", "6+ years", or any variation
+  * If the profile says specific numbers (e.g., "~40k users"), preserve the EXACT phrasing
+  * DO NOT round, approximate, or rephrase quantifiable facts
+  * DO NOT calculate or derive new numbers from existing facts
+  * Preserve exact dates, percentages, and numerical achievements
 - If a section (like Projects or Certifications) has NO data in the profile, return an empty list for that section.
+- **Presentation ONLY**: You may restructure how facts are presented, combine related bullets, or adjust emphasis - but NEVER change the facts themselves.
 
 Output: serialized JSON matching the schema.
 {format_instructions}
@@ -77,14 +85,20 @@ def generate_cover_letter_content(candidate_md: str, vacancy_md: str) -> CoverLe
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are an expert career coach writing a modern, high-impact Cover Letter.
+
 Task: Write a concise, punchy cover letter that connects the candidate's actual experience to the vacancy's needs.
+
 Rules:
 - **Brevity is Key**: Recruiters are busy. Keep the total length around 250-300 words.
 - **Tone**: Professional, confident, and direct. Avoid generic "I am writing to..." fluff where possible. 
 - **Evidence**: Focus on the 2-3 most relevant facts from the Candidate Profile that match the Vacancy.
 - **Constraint**: Include `<!-- source_id: ... -->` comments in the text where facts are used.
-- **Greeting**: Always start with a professional greeting (e.g., "Dear Hiring Team at [Company Name]," or "Dear [Hiring Manager Name]," if known).
-- **Consistency**: Ensure the total years of experience and core facts are strictly consistent with the Resume and the Candidate Profile.
+- **STRICT FACTUAL CONSISTENCY**: 
+  * Years of experience MUST match the Candidate Profile exactly (e.g., if "8+ years", write "8+ years" NOT "over 8 years" or "6+ years")
+  * Preserve exact phrasing for quantifiable facts (numbers, percentages, user counts, etc.)
+  * DO NOT invent, round, approximate, or modify any verifiable information
+  * Example: "~40k users" stays "~40k users", NOT "40,000 users" or "approximately 40k users"
+- **Greeting**: Always start with a professional greeting (e.g., "Dear Hiring Team at [Company Name],").
 - **Signature**: Provide a professional sign-off (e.g. "Sincerely," or "Best regards,") followed by the candidate's full name in the `signature_name` field.
 {format_instructions}
 """),
@@ -192,20 +206,20 @@ def create_cl_docx(content: CoverLetterContent, output_path: str):
     style.font.name = 'Arial'
     style.font.size = Pt(11)
     
-    # Simple CL Header (not requested to match resume but good to be clean)
+    # Opening (greeting)
+    opening_p = doc.add_paragraph(strip_tags(content.opening))
+    opening_p.paragraph_format.space_after = Pt(12)  # Use spacing property instead of blank paragraph
     
-    doc.add_paragraph(strip_tags(content.opening))
-    doc.add_paragraph("")
-    doc.add_paragraph("") # Extra space after greeting
-    
+    # Body paragraphs
     for para in content.body_paragraphs:
         stripped = strip_tags(para)
         if stripped:
-            doc.add_paragraph(stripped)
-            doc.add_paragraph("")
-        
-    doc.add_paragraph(strip_tags(content.closing))
-    doc.add_paragraph("")
+            p = doc.add_paragraph(stripped)
+            p.paragraph_format.space_after = Pt(12)  # Consistent spacing between paragraphs
+    
+    # Closing
+    closing_p = doc.add_paragraph(strip_tags(content.closing))
+    closing_p.paragraph_format.space_after = Pt(12)
     
     # Signature
     sig = strip_tags(content.signature_name)

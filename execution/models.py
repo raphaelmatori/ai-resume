@@ -37,7 +37,10 @@ class CandidateFacts(BaseModel):
     phone: Optional[str] = Field(None, description="Phone number")
     linkedin: Optional[str] = Field(None, description="LinkedIn profile URL")
     location: Optional[str] = Field(None, description="Current location (City, Country)")
+    professional_summary: Optional[str] = Field(None, description="Professional summary or objective statement")
     experiences: List[ExperienceFact] = []
     skills: List[SkillFact] = []
     education: List[EducationFact] = []
     projects: List[ProjectFact] = []
+    certifications: List[str] = Field(default_factory=list, description="Professional certifications")
+    raw_text: Optional[str] = Field(None, description="Complete extracted text for auditability")

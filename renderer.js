@@ -99,18 +99,29 @@ function showStep(step) {
         const stepNum = parseInt(s);
         const navEl = navSteps[s];
 
-        navEl.classList.remove('active');
+        // Remove active and clickable classes
+        navEl.classList.remove('active', 'clickable');
 
         // Step is active if it's the current view
         if (stepNum === step) {
             navEl.classList.add('active');
         }
 
+        // Make completed steps clickable (both before AND after current step)
         // Auto-complete previous steps
         if (stepNum < step) {
-            navEl.classList.add('completed');
+            navEl.classList.add('completed', 'clickable');
+        } else if (navEl.classList.contains('completed')) {
+            // Keep already completed steps as clickable even if they're ahead of current step
+            navEl.classList.add('clickable');
         }
     });
+
+    // Reset generation state when returning to Step 2
+    // This ensures the Generate button is responsive after backward navigation
+    if (step === 2 && state.isGenerating) {
+        state.isGenerating = false;
+    }
 
     state.currentStep = step;
 }
@@ -536,6 +547,19 @@ elements.resetAppBtn.addEventListener('click', async () => {
             alert("Error: " + result.error);
         }
     }
+});
+
+// --- Stepper Navigation Click Handlers ---
+Object.keys(navSteps).forEach(stepKey => {
+    const stepNum = parseInt(stepKey);
+    const stepEl = navSteps[stepKey];
+
+    stepEl.addEventListener('click', () => {
+        // Only allow clicking on completed steps (previous steps)
+        if (stepEl.classList.contains('clickable')) {
+            showStep(stepNum);
+        }
+    });
 });
 
 // Initialize

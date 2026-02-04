@@ -103,6 +103,19 @@ header p {
     opacity: 1;
 }
 
+.step.clickable {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.step.clickable:hover {
+    transform: translateY(-2px);
+}
+
+.step.clickable:hover .step-icon {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
 .step-icon {
     width: 48px;
     height: 48px;
@@ -705,6 +718,8 @@ textarea#vacancy-text:focus {
     overflow-y: auto;
     font-family: inherit;
     line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .analysis-report h1 {
@@ -733,6 +748,8 @@ textarea#vacancy-text:focus {
     margin-bottom: 0.75rem;
     padding-left: 1.5rem;
     position: relative;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 .analysis-report li::before {
@@ -741,6 +758,11 @@ textarea#vacancy-text:focus {
     left: 0;
     color: var(--primary);
     font-weight: bold;
+}
+
+.analysis-report p {
+    margin-bottom: 1rem;
+    white-space: normal;
 }
 
 .analysis-placeholder {

@@ -71,10 +71,12 @@ def extract_facts_from_text(text: str, source_id: str, filename: str) -> Candida
     parser = JsonOutputParser(pydantic_object=CandidateFacts)
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a Data Extraction Engine. Extract structured entities (Personal Info, Jobs, Skills, Education, Projects) from the provided Resume text.\n"
+        ("system", "You are a Data Extraction Engine. Extract structured entities (Personal Info, Professional Summary, Jobs, Skills, Education, Projects, Certifications) from the provided Resume text.\n"
                    "Rules:\n"
                    "1. COPY EXACT TEXT. Do not rewrite.\n"
-                   "2. Return raw JSON matching the schema.\n"
+                   "2. Extract the professional summary/objective if present.\n"
+                   "3. Extract any certifications or professional qualifications.\n"
+                   "4. Return raw JSON matching the schema.\n"
                    "{format_instructions}"),
         ("human", "{text}")
     ])
@@ -93,7 +95,10 @@ def extract_facts_from_text(text: str, source_id: str, filename: str) -> Candida
             email=result_dict.get("email"),
             phone=result_dict.get("phone"),
             linkedin=result_dict.get("linkedin"),
-            location=result_dict.get("location")
+            location=result_dict.get("location"),
+            professional_summary=result_dict.get("professional_summary"),
+            certifications=result_dict.get("certifications", []),
+            raw_text=text[:5000]  # Store first 5000 chars of raw text for auditability
         )
 
         for exp in result_dict.get("experiences", []):
@@ -135,6 +140,10 @@ def save_markdown_profile(facts_list: List[CandidateFacts], output_path: str):
             f.write(f"- **Phone**: {main_facts.phone}\n")
             f.write(f"- **LinkedIn**: {main_facts.linkedin}\n")
             f.write(f"- **Location**: {main_facts.location}\n\n")
+            
+            if main_facts.professional_summary:
+                f.write("## Professional Summary\n")
+                f.write(f"{main_facts.professional_summary}\n\n")
 
         f.write("## Experience\n")
         for facts in facts_list:
@@ -165,6 +174,21 @@ def save_markdown_profile(facts_list: List[CandidateFacts], output_path: str):
         for facts in facts_list:
             for edu in facts.education:
                  f.write(f"- **{edu.degree}**, {edu.institution} <!-- source_id: {edu.metadata.source_file_id} -->\n")
+        f.write("\n")
+        
+        # Add certifications section
+        f.write("## Certifications\n")
+        all_certs = set()
+        for facts in facts_list:
+            if facts.certifications:
+                for cert in facts.certifications:
+                    all_certs.add(cert)
+        
+        if all_certs:
+            for cert in sorted(all_certs):
+                f.write(f"- {cert}\n")
+        else:
+            f.write("- None listed\n")
         f.write("\n")
         
         f.write("## Projects\n")
