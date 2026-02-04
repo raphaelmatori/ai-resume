@@ -28,6 +28,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Commit any changes from npm ci
+        run: |
+          git add .
+          git diff --staged --quiet || git commit -m "chore: update lockfile [skip ci]"
+
       - name: Auto-increment Version
         id: versioning
         run: |
