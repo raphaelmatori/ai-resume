@@ -1,0 +1,58 @@
+{
+  "name": "ai-resume",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist": "electron-builder -m",
+    "release": "electron-builder -m -p always"
+  },
+  "keywords": [],
+  "author": "Hyper-Tailored",
+  "license": "MIT",
+  "description": "AI Resume Builder",
+  "devDependencies": {
+    "electron": "^40.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "python-shell": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.hyper-tailored.ai-resume",
+    "productName": "AI Resume Builder",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "screenshots/icon.icns"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "files": [
+      "**/*",
+      "!venv/**/*",
+      "!node_modules/electron/**/*",
+      "!node_modules/electron-builder/**/*",
+      "!sources/**/*",
+      "!data/processed/**/*",
+      "!output/**/*",
+      "!.git/**/*",
+      "!.github/**/*"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+# Environment & System
+.tmp/
+.env
+.DS_Store
+Thumbs.db
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Node / Electron
+node_modules/
+dist/
+
+# Project Specific Data (Protected/Generated)
+data/processed/
+output/
+sources/candidate/*
+!sources/candidate/.gitkeep
+sources/vacancy/*
+!sources/vacancy/.gitkeep
+
+# Credentials (redundant but safe)
+credentials.json
+token.json

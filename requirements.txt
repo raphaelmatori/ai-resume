@@ -1,0 +1,13 @@
+openai
+langchain
+langchain-openai
+langchain-google-genai
+pdfplumber
+python-docx
+pandas
+python-dotenv
+pydantic
+tiktoken
+pytest
+trafilatura
+requests

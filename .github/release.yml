@@ -1,0 +1,27 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - octocat
+  categories:
+    - title: 🚀 Features
+      labels:
+        - enhancement
+        - feature
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - fix
+    - title: 🧹 Chores & Maintenance
+      labels:
+        - chore
+        - documentation
+        - internal
+    - title: 🧪 Tests
+      labels:
+        - test
+    - title: 🎨 UI/UX
+      labels:
+        - ui
+        - styling
