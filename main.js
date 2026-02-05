@@ -327,50 +327,44 @@ ipcMain.handle('read-analysis-report', async () => {
 });
 
 function getPythonPath() {
-    // Try venv first (development mode)
-    const venvPath = path.join(__dirname, 'venv');
-    let pythonPath;
+    // 1. Determine the venv base path
+    let venvPath;
+    if (app.isPackaged) {
+        // In production, venv is in the Resources folder
+        venvPath = path.join(process.resourcesPath, 'venv');
+    } else {
+        // In development, venv is in the root directory
+        venvPath = path.join(__dirname, 'venv');
+    }
 
+    // 2. Determine the executable path within the venv
+    let pythonPath;
     if (process.platform === 'win32') {
         pythonPath = path.join(venvPath, 'Scripts', 'python.exe');
     } else {
         pythonPath = path.join(venvPath, 'bin', 'python3');
     }
 
-    // If venv exists, use it
+    // 3. If venv exists at this path, use it
     if (fs.existsSync(pythonPath)) {
         console.log(`Using venv Python: ${pythonPath}`);
         return pythonPath;
     }
 
-    // Fall back to system Python (production mode)
+    // 4. Fallback to system Python if venv is missing
     console.log('Venv not found, searching for system Python...');
-
-    if (process.platform === 'win32') {
-        return 'python';
-    }
-
-    // macOS/Linux: GUI apps don't inherit terminal PATH, so 'python3' often resolves
-    // to the system shim (/usr/bin/python3) which doesn't have user packages.
-    // We must check common user install locations first.
+    if (process.platform === 'win32') return 'python';
 
     const possiblePaths = [
-        path.join(process.env.HOME || '', '.pyenv/shims/python3'), // Pyenv
-        '/opt/homebrew/bin/python3',                               // Homebrew (Apple Silicon)
-        '/usr/local/bin/python3',                                  // Homebrew (Intel) / Official Installer
-        path.join(process.env.HOME || '', 'anaconda3/bin/python3'), // Anaconda
-        path.join(process.env.HOME || '', 'miniconda3/bin/python3'), // Miniconda
-        '/usr/bin/python3',                                        // System Fallback
+        '/opt/homebrew/bin/python3',
+        '/usr/local/bin/python3',
+        '/usr/bin/python3'
     ];
 
     for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-            console.log(`Found Python at: ${p}`);
-            return p;
-        }
+        if (fs.existsSync(p)) return p;
     }
 
-    // Last resort
     return 'python3';
 }
 
