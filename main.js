@@ -5,33 +5,55 @@ const { PythonShell } = require('python-shell');
 
 let mainWindow;
 
+process.on('uncaughtException', (error) => {
+    console.error('CRITICAL ERROR:', error);
+    dialog.showErrorBox('Application Error', error.stack || error.message);
+});
+
 function createWindow() {
-    // Ensure required directories exist
-    const requiredDirs = [
-        path.join(__dirname, 'sources', 'candidate'),
-        path.join(__dirname, 'sources', 'vacancy'),
-        path.join(__dirname, 'data', 'processed'),
-        path.join(__dirname, 'output')
-    ];
+    try {
+        // Ensure required directories exist
+        const baseDir = app.isPackaged ? path.dirname(app.getPath('exe')) : __dirname;
+        // In macOS .app bundle, getPath('exe') is deep inside.
+        // Better to use userData for persistent storage in production
+        const storageDir = app.isPackaged ? app.getPath('userData') : __dirname;
 
-    requiredDirs.forEach(dir => {
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-            console.log(`Created directory: ${dir}`);
-        }
-    });
+        console.log("Storage Directory:", storageDir);
 
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: false,
-            contextIsolation: true
-        }
-    });
+        const requiredDirs = [
+            path.join(storageDir, 'sources', 'candidate'),
+            path.join(storageDir, 'sources', 'vacancy'),
+            path.join(storageDir, 'data', 'processed'),
+            path.join(storageDir, 'output')
+        ];
 
-    mainWindow.loadFile('index.html');
+        requiredDirs.forEach(dir => {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+                console.log(`Created directory: ${dir}`);
+            }
+        });
+
+        mainWindow = new BrowserWindow({
+            width: 1200,
+            height: 800,
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                nodeIntegration: false,
+                contextIsolation: true,
+                devTools: true
+            }
+        });
+
+        mainWindow.loadFile('index.html');
+
+        // OPEN DEV TOOLS TO SEE ERRORS
+        mainWindow.webContents.openDevTools();
+
+    } catch (e) {
+        console.error("Window Creation Failed:", e);
+        dialog.showErrorBox("Startup Error", e.message);
+    }
 }
 
 // Helper to run python script with streaming logs
@@ -79,14 +101,20 @@ app.whenReady().then(() => {
         return { status: 'success', filePaths: result.filePaths };
     });
 
+    // Helper to determine storage path (UserData in prod, __dirname in dev)
+    function getStoragePath() {
+        return app.isPackaged ? app.getPath('userData') : __dirname;
+    }
+
     // Helper for clearing data (Internal and IPC)
     const clearDataInternal = () => {
         try {
+            const storage = getStoragePath();
             const dirs = [
-                path.join(__dirname, 'sources/candidate'),
-                path.join(__dirname, 'sources/vacancy'),
-                path.join(__dirname, 'data/processed'),
-                path.join(__dirname, 'output')
+                path.join(storage, 'sources/candidate'),
+                path.join(storage, 'sources/vacancy'),
+                path.join(storage, 'data/processed'),
+                path.join(storage, 'output')
             ];
 
             for (const dir of dirs) {
@@ -94,7 +122,11 @@ app.whenReady().then(() => {
                     const files = fs.readdirSync(dir);
                     for (const file of files) {
                         try {
-                            fs.unlinkSync(path.join(dir, file));
+                            const filePath = path.join(dir, file);
+                            // Don't delete .gitkeep
+                            if (file !== '.gitkeep') {
+                                fs.unlinkSync(filePath);
+                            }
                         } catch (e) { console.error(`Failed to delete ${file}:`, e); }
                     }
                 }
@@ -137,7 +169,7 @@ function copyFile(source, targetDir) {
 
 ipcMain.handle('upload-files', async (event, { filePaths, type, textContent }) => {
     try {
-        const baseDir = path.join(__dirname, 'sources');
+        const baseDir = path.join(getStoragePath(), 'sources');
         const targetDir = type === 'candidate' ? path.join(baseDir, 'candidate') : path.join(baseDir, 'vacancy');
 
         if (!fs.existsSync(targetDir)) {
@@ -180,13 +212,13 @@ ipcMain.handle('upload-files', async (event, { filePaths, type, textContent }) =
 });
 
 ipcMain.handle('open-path', async (event, filePath) => {
-    const fullPath = path.join(__dirname, filePath);
+    const fullPath = path.join(getStoragePath(), filePath);
     shell.openPath(fullPath);
     return { status: 'success' };
 });
 
 ipcMain.handle('show-in-folder', async (event, filePath) => {
-    const fullPath = path.join(__dirname, filePath);
+    const fullPath = path.join(getStoragePath(), filePath);
     shell.showItemInFolder(fullPath);
     return { status: 'success' };
 });
@@ -205,17 +237,30 @@ ipcMain.handle('delete-file', async (event, filePath) => {
 
 // Settings Management (.env based)
 ipcMain.handle('get-config', async () => {
-    const envPath = path.join(__dirname, '.env');
-    if (!fs.existsSync(envPath)) return {};
+    // Try user config first (in userData), then default (in app bundle)
+    const userEnvPath = path.join(getStoragePath(), '.env');
+    if (fs.existsSync(userEnvPath)) {
+        return parseEnv(userEnvPath);
+    }
 
-    const content = fs.readFileSync(envPath, 'utf8');
+    // Fallback to default .env in bundle if not in production
+    const defaultEnvPath = path.join(__dirname, '.env');
+    if (fs.existsSync(defaultEnvPath) && !app.isPackaged) {
+        return parseEnv(defaultEnvPath);
+    }
+
+    return {};
+});
+
+function parseEnv(filePath) {
+    const content = fs.readFileSync(filePath, 'utf8');
     const config = {};
     content.split('\n').forEach(line => {
         const [key, value] = line.split('=');
         if (key && value) config[key.trim()] = value.trim();
     });
     return config;
-});
+}
 
 ipcMain.handle('get-app-version', async () => {
     return app.getVersion();
@@ -223,10 +268,13 @@ ipcMain.handle('get-app-version', async () => {
 
 ipcMain.handle('save-config', async (event, newConfig) => {
     try {
-        const envPath = path.join(__dirname, '.env');
+        const envPath = path.join(getStoragePath(), '.env');
         let content = "";
+
         if (fs.existsSync(envPath)) {
             content = fs.readFileSync(envPath, 'utf8');
+        } else if (fs.existsSync(path.join(__dirname, '.env'))) {
+            content = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
         }
 
         const lines = content.split('\n');
@@ -266,7 +314,7 @@ ipcMain.handle('save-config', async (event, newConfig) => {
 // Helper to get platform-specific python path
 ipcMain.handle('read-analysis-report', async () => {
     try {
-        const reportPath = path.join(__dirname, 'data', 'processed', 'analysis_report.md');
+        const reportPath = path.join(getStoragePath(), 'data', 'processed', 'analysis_report.md');
         if (fs.existsSync(reportPath)) {
             return { status: 'success', content: fs.readFileSync(reportPath, 'utf8') };
         }
@@ -294,14 +342,11 @@ function getPythonPath() {
     }
 
     // Fall back to system Python (production mode)
-    // User must have Python 3 installed with required packages
     console.log('Venv not found, using system Python');
 
     if (process.platform === 'win32') {
-        return 'python'; // Windows usually has 'python' in PATH
+        return 'python';
     }
-
-    // macOS/Linux: try python3 first, then python
     return 'python3';
 }
 
@@ -310,6 +355,7 @@ ipcMain.handle('run-ingest-vacancy', async (event, args) => {
         mode: 'text',
         pythonPath: getPythonPath(),
         scriptPath: path.join(__dirname, 'execution'),
+        cwd: getStoragePath()
     };
     return runPythonScriptStream('ingest_vacancy.py', options);
 });
@@ -319,6 +365,7 @@ ipcMain.handle('run-ingest-candidate', async (event, args) => {
         mode: 'text',
         pythonPath: getPythonPath(),
         scriptPath: path.join(__dirname, 'execution'),
+        cwd: getStoragePath()
     };
     return runPythonScriptStream('ingest_candidate.py', options);
 });
@@ -328,6 +375,7 @@ ipcMain.handle('run-generate', async (event, args) => {
         mode: 'text',
         pythonPath: getPythonPath(),
         scriptPath: path.join(__dirname, 'execution'),
+        cwd: getStoragePath()
     };
     return runPythonScriptStream('generate_application.py', options);
 });
@@ -337,6 +385,7 @@ ipcMain.handle('run-analyze-match', async (event, args) => {
         mode: 'text',
         pythonPath: getPythonPath(),
         scriptPath: path.join(__dirname, 'execution'),
+        cwd: getStoragePath()
     };
     return runPythonScriptStream('analyze_match.py', options);
 });
