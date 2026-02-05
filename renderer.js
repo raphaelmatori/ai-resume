@@ -288,7 +288,8 @@ elements.dropZone.addEventListener('drop', async (e) => {
         return;
     }
 
-    const paths = files.map(f => f.path);
+    // Use webUtils.getPathForFile() to get paths from File objects (required for packaged apps)
+    const paths = files.map(f => window.electronAPI.getPathForFile(f));
     log(`Dropped ${paths.length} files. Uploading...`);
 
     const uploadResult = await window.electronAPI.uploadFiles(paths, 'candidate');

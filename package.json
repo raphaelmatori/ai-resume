@@ -26,8 +26,28 @@
       "output": "dist"
     },
     "mac": {
-      "target": "dmg",
-      "icon": "screenshots/icon.icns"
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icon.icns",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false,
+      "entitlements": null,
+      "entitlementsInherit": null
     },
     "dmg": {
       "contents": [
@@ -48,11 +68,19 @@
       "!venv/**/*",
       "!node_modules/electron/**/*",
       "!node_modules/electron-builder/**/*",
-      "!sources/**/*",
-      "!data/processed/**/*",
-      "!output/**/*",
+      "!sources/candidate/*",
+      "!sources/vacancy/*",
+      "!data/processed/*",
+      "!output/*",
       "!.git/**/*",
-      "!.github/**/*"
+      "!.github/**/*",
+      "!dist/**/*",
+      "!.tmp/**/*",
+      "sources/candidate/.gitkeep",
+      "sources/vacancy/.gitkeep"
+    ],
+    "asarUnpack": [
+      "execution/**/*"
     ]
   }
 }

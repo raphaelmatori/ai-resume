@@ -62,6 +62,22 @@ jobs:
           tag_name: v${{ steps.versioning.outputs.NEW_VERSION }}
           name: Release v${{ steps.versioning.outputs.NEW_VERSION }}
           body: |
+            ## 📥 Installation Instructions
+            
+            ⚠️ **This app is unsigned.** macOS will show security warnings on first launch.
+            
+            ### Quick Install (macOS)
+            1. Download the appropriate file for your Mac:
+               - **Apple Silicon (M1/M2/M3)**: `*-arm64.dmg` or `*-arm64-mac.zip`
+               - **Intel**: `*-x64.dmg` or `*-x64-mac.zip`
+            2. Open the DMG and drag to Applications (or extract ZIP)
+            3. **Right-click** the app → "Open" (first time only)
+            4. Click "Open" in the security dialog
+            
+            📖 **[Full Installation Guide](https://github.com/raphaelmatori/ai-resume/blob/main/INSTALLATION_GUIDE.md)**
+            
+            ---
+            
             ## What's Changed
             - See commit history for details
           draft: false
@@ -69,5 +85,7 @@ jobs:
           generate_release_notes: true
           files: |
             dist/*.dmg
+            dist/*.zip
+            dist/*-mac.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

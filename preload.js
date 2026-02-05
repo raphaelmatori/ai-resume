@@ -18,5 +18,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteFile: (path) => ipcRenderer.invoke('delete-file', path),
     getConfig: () => ipcRenderer.invoke('get-config'),
     saveConfig: (config) => ipcRenderer.invoke('save-config', config),
-    getAppVersion: () => ipcRenderer.invoke('get-app-version')
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    getPathForFile: (file) => webUtils.getPathForFile(file)
 });

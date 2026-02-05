@@ -6,6 +6,21 @@ const { PythonShell } = require('python-shell');
 let mainWindow;
 
 function createWindow() {
+    // Ensure required directories exist
+    const requiredDirs = [
+        path.join(__dirname, 'sources', 'candidate'),
+        path.join(__dirname, 'sources', 'vacancy'),
+        path.join(__dirname, 'data', 'processed'),
+        path.join(__dirname, 'output')
+    ];
+
+    requiredDirs.forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+            console.log(`Created directory: ${dir}`);
+        }
+    });
+
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -262,11 +277,32 @@ ipcMain.handle('read-analysis-report', async () => {
 });
 
 function getPythonPath() {
+    // Try venv first (development mode)
     const venvPath = path.join(__dirname, 'venv');
+    let pythonPath;
+
     if (process.platform === 'win32') {
-        return path.join(venvPath, 'Scripts', 'python.exe');
+        pythonPath = path.join(venvPath, 'Scripts', 'python.exe');
+    } else {
+        pythonPath = path.join(venvPath, 'bin', 'python3');
     }
-    return path.join(venvPath, 'bin', 'python3');
+
+    // If venv exists, use it
+    if (fs.existsSync(pythonPath)) {
+        console.log(`Using venv Python: ${pythonPath}`);
+        return pythonPath;
+    }
+
+    // Fall back to system Python (production mode)
+    // User must have Python 3 installed with required packages
+    console.log('Venv not found, using system Python');
+
+    if (process.platform === 'win32') {
+        return 'python'; // Windows usually has 'python' in PATH
+    }
+
+    // macOS/Linux: try python3 first, then python
+    return 'python3';
 }
 
 ipcMain.handle('run-ingest-vacancy', async (event, args) => {

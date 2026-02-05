@@ -4,6 +4,31 @@ A professional-grade, deterministic application designed to adapt resumes and co
 
 ---
 
+## 📥 Installation
+
+### **Download Pre-Built App (macOS)**
+
+⚠️ **Important:** This app is currently **unsigned**. macOS will show security warnings on first launch.
+
+👉 **[Download Latest Release](https://github.com/raphaelmatori/ai-resume/releases/latest)**
+
+📖 **[Read Installation Guide](INSTALLATION_GUIDE.md)** - Step-by-step instructions to safely install and open the app
+
+**Quick Start:**
+1. Download the DMG or ZIP for your Mac (Intel or Apple Silicon)
+3. Click "Open" in the security dialog
+
+**Requirements:**
+- macOS 10.15 (Catalina) or later
+- **Python 3.9+** installed on your system (the app uses your system Python)
+- Required Python packages (see [Installation Guide](INSTALLATION_GUIDE.md#python-requirements))
+
+### **Build From Source**
+
+See the "Getting Started" section below for development setup.
+
+---
+
 ## 🏗️ Architecture Overview
 
 The system follows a strict **Deterministic Fact Pipeline**. It extracts facts from your resume, stores them in a normalized Markdown database, and then uses only those verified facts to generate tailored applications.
