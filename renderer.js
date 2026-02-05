@@ -289,20 +289,37 @@ elements.dropZone.addEventListener('drop', async (e) => {
     }
 
     // Use webUtils.getPathForFile() to get paths from File objects (required for packaged apps)
-    const paths = files.map(f => window.electronAPI.getPathForFile(f));
-    log(`Dropped ${paths.length} files. Uploading...`);
+    try {
+        const paths = files.map(f => {
+            const p = window.electronAPI.getPathForFile(f);
+            console.log("Resolved path for file:", f.name, "->", p);
+            return p;
+        });
 
-    const uploadResult = await window.electronAPI.uploadFiles(paths, 'candidate');
-    if (uploadResult.status === 'success') {
-        const newFiles = uploadResult.files.map(f => ({
-            name: f.name,
-            size: (f.size / 1024).toFixed(1) + ' KB',
-            path: f.path
-        }));
-        state.uploadedFiles = [...state.uploadedFiles, ...newFiles];
-        updateFileList();
-        elements.toStep2Btn.disabled = false;
-        elements.dropIcon.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        log(`Dropped ${paths.length} files. Uploading...`);
+        console.log("Paths to upload:", paths);
+
+        const uploadResult = await window.electronAPI.uploadFiles(paths, 'candidate');
+        console.log("Upload result:", uploadResult);
+
+        if (uploadResult.status === 'success') {
+            const newFiles = uploadResult.files.map(f => ({
+                name: f.name,
+                size: (f.size / 1024).toFixed(1) + ' KB',
+                path: f.path
+            }));
+            state.uploadedFiles = [...state.uploadedFiles, ...newFiles];
+            updateFileList();
+            elements.toStep2Btn.disabled = false;
+            elements.dropIcon.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+            log("Upload successful!");
+        } else {
+            log(`Upload failed: ${uploadResult.error}`, true);
+            alert(`Upload Error: ${uploadResult.error}`);
+        }
+    } catch (err) {
+        console.error("Drop handler error:", err);
+        log(`Error processing drop: ${err.message}`, true);
     }
 });
 
