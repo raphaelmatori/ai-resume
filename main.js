@@ -352,11 +352,19 @@ function getPythonPath() {
     return 'python3';
 }
 
+// Helper to locate python scripts (unpacked in prod)
+function getScriptPath() {
+    if (app.isPackaged) {
+        return path.join(process.resourcesPath, 'app.asar.unpacked', 'execution');
+    }
+    return path.join(__dirname, 'execution');
+}
+
 ipcMain.handle('run-ingest-vacancy', async (event, args) => {
     let options = {
         mode: 'text',
         pythonPath: getPythonPath(),
-        scriptPath: path.join(__dirname, 'execution'),
+        scriptPath: getScriptPath(),
         cwd: getStoragePath()
     };
     return runPythonScriptStream('ingest_vacancy.py', options);
@@ -366,7 +374,7 @@ ipcMain.handle('run-ingest-candidate', async (event, args) => {
     let options = {
         mode: 'text',
         pythonPath: getPythonPath(),
-        scriptPath: path.join(__dirname, 'execution'),
+        scriptPath: getScriptPath(),
         cwd: getStoragePath()
     };
     return runPythonScriptStream('ingest_candidate.py', options);
@@ -376,7 +384,7 @@ ipcMain.handle('run-generate', async (event, args) => {
     let options = {
         mode: 'text',
         pythonPath: getPythonPath(),
-        scriptPath: path.join(__dirname, 'execution'),
+        scriptPath: getScriptPath(),
         cwd: getStoragePath()
     };
     return runPythonScriptStream('generate_application.py', options);
@@ -386,7 +394,7 @@ ipcMain.handle('run-analyze-match', async (event, args) => {
     let options = {
         mode: 'text',
         pythonPath: getPythonPath(),
-        scriptPath: path.join(__dirname, 'execution'),
+        scriptPath: getScriptPath(),
         cwd: getStoragePath()
     };
     return runPythonScriptStream('analyze_match.py', options);
