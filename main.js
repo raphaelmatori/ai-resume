@@ -3,6 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { PythonShell } = require('python-shell');
 
+// Helper to determine storage path (UserData in prod, __dirname in dev)
+function getStoragePath() {
+    return app.isPackaged ? app.getPath('userData') : __dirname;
+}
+
 let mainWindow;
 
 process.on('uncaughtException', (error) => {
@@ -101,10 +106,7 @@ app.whenReady().then(() => {
         return { status: 'success', filePaths: result.filePaths };
     });
 
-    // Helper to determine storage path (UserData in prod, __dirname in dev)
-    function getStoragePath() {
-        return app.isPackaged ? app.getPath('userData') : __dirname;
-    }
+
 
     // Helper for clearing data (Internal and IPC)
     const clearDataInternal = () => {
