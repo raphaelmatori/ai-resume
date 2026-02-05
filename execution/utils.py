@@ -5,8 +5,13 @@ from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.language_models.chat_models import BaseChatModel
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the current working directory (userData in production)
+env_path = os.path.join(os.getcwd(), '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path, override=True)
+else:
+    # Fallback to default behavior
+    load_dotenv()
 
 def get_llm(model_name: str = None, temperature: float = 0.0) -> BaseChatModel:
     """
