@@ -344,11 +344,33 @@ function getPythonPath() {
     }
 
     // Fall back to system Python (production mode)
-    console.log('Venv not found, using system Python');
+    console.log('Venv not found, searching for system Python...');
 
     if (process.platform === 'win32') {
         return 'python';
     }
+
+    // macOS/Linux: GUI apps don't inherit terminal PATH, so 'python3' often resolves
+    // to the system shim (/usr/bin/python3) which doesn't have user packages.
+    // We must check common user install locations first.
+
+    const possiblePaths = [
+        path.join(process.env.HOME || '', '.pyenv/shims/python3'), // Pyenv
+        '/opt/homebrew/bin/python3',                               // Homebrew (Apple Silicon)
+        '/usr/local/bin/python3',                                  // Homebrew (Intel) / Official Installer
+        path.join(process.env.HOME || '', 'anaconda3/bin/python3'), // Anaconda
+        path.join(process.env.HOME || '', 'miniconda3/bin/python3'), // Miniconda
+        '/usr/bin/python3',                                        // System Fallback
+    ];
+
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            console.log(`Found Python at: ${p}`);
+            return p;
+        }
+    }
+
+    // Last resort
     return 'python3';
 }
 
