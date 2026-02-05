@@ -47,7 +47,8 @@ Output Format (Markdown):
     return invoke_with_retry(chain, {"candidate": candidate_text, "vacancy": vacancy_text})
 
 def main():
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Use current working directory (important for packaged Electron app)
+    BASE_DIR = os.getcwd()
     CANDIDATE_PATH = os.path.join(BASE_DIR, "data", "processed", "candidate_profile.md")
     VACANCY_PATH = os.path.join(BASE_DIR, "data", "processed", "vacancy_profile.md")
     OUTPUT_PATH = os.path.join(BASE_DIR, "data", "processed", "analysis_report.md")

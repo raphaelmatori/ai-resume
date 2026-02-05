@@ -145,7 +145,8 @@ def process_vacancy(source_dir: str, output_path: str):
         sys.exit(1)
 
 if __name__ == "__main__":
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Use current working directory (important for packaged Electron app)
+    BASE_DIR = os.getcwd()
     SOURCE_DIR = os.path.join(BASE_DIR, "sources", "vacancy")
     OUTPUT_FILE = os.path.join(BASE_DIR, "data", "processed", "vacancy_profile.md")
     

@@ -230,7 +230,8 @@ def create_cl_docx(content: CoverLetterContent, output_path: str):
     logging.info(f"Saved cover letter DOCX to {output_path}")
 
 def main():
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Use current working directory (important for packaged Electron app)
+    BASE_DIR = os.getcwd()
     DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
     OUTPUT_DIR = os.path.join(BASE_DIR, "output")
     ensure_directory(OUTPUT_DIR)

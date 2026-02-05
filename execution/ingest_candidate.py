@@ -285,8 +285,8 @@ def process_candidate_sources(source_dir: str, output_dir: str):
     logging.info(f"✅ Generated profile at {md_path} with {total_all_facts} total facts")
 
 if __name__ == "__main__":
-    # Default paths for standalone execution
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Use current working directory (important for packaged Electron app)
+    BASE_DIR = os.getcwd()
     SOURCE_DIR = os.path.join(BASE_DIR, "sources", "candidate")
     OUTPUT_DIR = os.path.join(BASE_DIR, "data", "processed")
     
