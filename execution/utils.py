@@ -13,7 +13,7 @@ else:
     # Fallback to default behavior
     load_dotenv()
 
-def get_llm(model_name: str = None, temperature: float = 0.0) -> BaseChatModel:
+def get_llm(model_name: str = None, temperature: float = 0.1) -> BaseChatModel:
     """
     Returns a configured Chat Model instance.
     Supports OpenAI (gpt-*) and Google (gemini-*).

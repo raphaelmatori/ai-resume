@@ -46,14 +46,14 @@ function createWindow() {
                 preload: path.join(__dirname, 'preload.js'),
                 nodeIntegration: false,
                 contextIsolation: true,
-                devTools: true
+                devTools: false
             }
         });
 
         mainWindow.loadFile('index.html');
 
         // OPEN DEV TOOLS TO SEE ERRORS
-        mainWindow.webContents.openDevTools();
+        // mainWindow.webContents.openDevTools();
 
     } catch (e) {
         console.error("Window Creation Failed:", e);

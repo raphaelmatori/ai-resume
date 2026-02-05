@@ -68,7 +68,7 @@ def distill_vacancy(raw_text: str) -> str:
 
     combined_text = raw_text + extra_content
     
-    llm = get_llm(temperature=0.0)
+    llm = get_llm(temperature=0.1)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a Senior Technical Recruiter.

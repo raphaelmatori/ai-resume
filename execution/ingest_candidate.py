@@ -67,7 +67,7 @@ def extract_facts_from_text(text: str, source_id: str, filename: str) -> Candida
     Returns:
         candidate_facts: A Pydantic model containing atomized experiences, skills, etc.
     """
-    llm = get_llm(temperature=0.0)
+    llm = get_llm(temperature=0.1)
     parser = JsonOutputParser(pydantic_object=CandidateFacts)
     
     prompt = ChatPromptTemplate.from_messages([

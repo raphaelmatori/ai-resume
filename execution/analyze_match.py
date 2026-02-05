@@ -21,7 +21,7 @@ print(">>> Match Analysis Script Early Heartbeat", flush=True)
 logging.info("Starting match analysis process...")
 
 def analyze_match(candidate_text: str, vacancy_text: str) -> str:
-    llm = get_llm(temperature=0.0)
+    llm = get_llm(temperature=0.1)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are an Expert Career Coach and ATS Specialist.
